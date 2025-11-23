@@ -1,140 +1,107 @@
-let sizeSlider, clearBtn;
-let circleSize = 50;
-let points = [];
-let graph = null;
-let graphPadding = 10;
-let graphLineHeight = 10;
+const fps = 20;
+const circleSize = 5;
+const accelerationFactor = 0.001;
+const numClusters = 10;
 
-function displayNumber(value, pos) {
-  textSize(24);
-  fill(0);
-  textAlign(RIGHT, BOTTOM);
-  text(value, pos.x, pos.y);
+const minPointsPerCluster = 5;
+const maxPointsPerCluster = 50;
+
+const minInitialRadius = 5;
+const maxInitialRadius = 50;
+
+const minFade = 0.1;
+const maxRadius = 200;
+
+const minSpeed = 0.001;
+const maxSpeed = 1;
+
+let clusters = [];
+
+function randint(lower, upper) {
+  return floor(random(lower, upper));
 }
 
-function verticalLine(color, pos, lineHeight) {
-  fill(color);
-  rect(pos.x, pos.y - (lineHeight/2), 2, lineHeight);
+function randomVecInCanvas() {
+  return createVector(random(0, width), random(0, height));
 }
 
-function horizontalRule(color, start, end) {
-  fill(color);
-  line(start.x, start.y, end.x, end.y);
-}
+class Cluster {
+  constructor (center, numPoints, initialRadius, speed) {
+    this.center = center;
+    this.numPoints = numPoints;
+    this.speed = speed;
+    this.points = [];
 
-class DataPoint {
-  constructor (pos) {
-    this.pos = pos;
-    this.color = color(128, 192, 192);
+    for (let i = 0; i < numPoints; i++) {
+      let p = createVector(
+        random(-initialRadius, initialRadius),
+        random(-initialRadius, initialRadius));
+      this.points.push(p.add(this.center));
+    }
+  }
+
+  update() {
+    for (let i = 0; i < this.points.length; i++) {
+      let p = this.points[i];
+      let velVec = p5.Vector.sub(p, this.center).normalize().mult(this.speed);
+      p.add(velVec);
+    }
+    this.speed += accelerationFactor * this.speed;
+    this.fade = max(0, 1 - (p5.Vector.dist(this.center, this.points[0]) / maxRadius));
   }
 
   draw() {
-    fill(this.color);
-    ellipse(this.pos.x, this.pos.y, circleSize, circleSize)
-  }
-}
-
-class VariabilityGraph {
-  constructor (canvasWidth, canvasHeight, padding) {
-    this.resize(canvasWidth, canvasHeight, padding);
-  }
-
-  draw(points) {
-    let median = medianPoint(points).pos;
-    let zero = this.startPoint;
-    verticalLine(color(32, 0, 0), zero, graphLineHeight+5);
-    horizontalRule(color(32,32,32), this.startPoint, this.endPoint);
-
-    let sum = 0;
-    let vec = p5.Vector.sub(this.endPoint, this.startPoint).normalize();
-    for (let i = 0; i < points.length; i++) {
-      let p = points[i].pos;
-      let distance = median.dist(p);
-      let pt = p5.Vector.add(zero, p5.Vector.mult(vec, distance));
-      verticalLine(color(0, 0, 0), pt, graphLineHeight)
-
-      sum += distance * distance;
+    for (let i = 0; i < this.points.length; i++) {
+      let p = this.points[i];
+      noStroke();
+      fill(128, 0, 0, this.fade*240);
+      circle(p.x, p.y, circleSize);
     }
-
-    sum = floor(sum) / 100;
-    displayNumber(sum, this.endPoint);
   }
 
-  resize(canvasWidth, canvasHeight, padding) {
-    this.startPoint = createVector(padding, canvasHeight-padding);
-    this.endPoint = createVector(canvasWidth-padding, canvasHeight-padding);
+  shouldDie() {
+    return this.fade < minFade;
   }
 }
 
-function middlePoint(a, b) {
-  return createVector((a.x+b.x)/2, (a.y + b.y)/2);
-}
-
-function medianPoint(points) {
-  let avg = createVector(0, 0);
-  for (let i = 0; i < points.length; i++) {
-    avg.x += points[i].pos.x;
-    avg.y += points[i].pos.y;
-  }
-  avg.x = avg.x/points.length;
-  avg.y = avg.y/points.length;
-  return new DataPoint(avg);
+function newRandomCluster() {
+  let center = randomVecInCanvas();
+  let numPoints = randint(minPointsPerCluster, maxPointsPerCluster);
+  let initialRadius = randint(minInitialRadius, maxInitialRadius);
+  let speed = random(minSpeed, maxSpeed);
+  return new Cluster(center, numPoints, initialRadius, speed);
 }
 
 function setup() {
-  let cnv = createCanvas(windowWidth * 0.8, windowHeight);
-  cnv.parent('canvas-container');
+  p5Canvas = createCanvas(windowWidth, windowHeight);
+  p5Canvas.parent("canvas-container");
 
-  sizeSlider = select('#sizeSlider');
-  clearBtn = select('#clearBtn');
+  p5Canvas.position(0, 0);
+  p5Canvas.style('z-index', '-1');
+  p5Canvas.style('position', 'fixed');
 
-  sizeSlider.input(() => {
-    circleSize = sizeSlider.value();
-  });
-
-  clearBtn.mousePressed(() => {
-    points = [];
-  });
-
-  graph = new VariabilityGraph(width, height, graphPadding);
+  background(220);
+  frameRate(fps);
+  for (let i = 0; i < numClusters; i++) {
+    clusters.push(newRandomCluster());
+  }
 }
 
 function draw() {
   background(220);
-  for (let i = 0; i < points.length; i++) {
-    points[i].draw();
+  for (let i = 0; i < numClusters; i++) {
+    clusters[i].draw();
   }
-  if (points.length > 0) {
-    let p = medianPoint(points);
-    p.color = color(192, 128, 128);
-    p.draw();
-
-    graph.draw(points);
+  for (let i = 0; i < numClusters; i++) {
+    clusters[i].update();
+  }
+  for (let i = 0; i < numClusters; i++) {
+    if (clusters[i].shouldDie()) {
+      clusters[i] = newRandomCluster();
+    }
   }
 }
 
 function windowResized() {
-  let newWidth = windowWidth * 0.8;
-  let newHeight = windowHeight;
-  resizeCanvas(newWidth, newHeight);
-  graph.resize(newWidth, newHeight, graphPadding);
-}
-
-function inBounds(x, y) {
-  return x >= 0 && y >= 0 &&
-         x <= width && y <= height;
-}
-
-function mousePressed() {
-  if (inBounds(mouseX, mouseY)) {
-    points.push(new DataPoint(createVector(mouseX, mouseY)));
-  }
-}
-
-function touchStarted() {
-  if (inBounds(mouseX, mouseY)) {
-    points.push(new DataPoint(createVector(mouseX, mouseY)));
-    return false;
-  }
-  return true;
+  resizeCanvas(windowWidth, windowHeight);
 }

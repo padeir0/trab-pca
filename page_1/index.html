@@ -11,29 +11,16 @@
       svg: { fontCache: 'global' }
     };
   </script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
-    async>
-  </script>
-  
+  <script src="../libs/tex-svg.js"></script>
+  <script src="../libs/p5.min.js"></script>
+  <script src="sketch.js"></script>
   <link rel="stylesheet" type="text/css" href="../style.css">
 </head>
 <body>
-  <div class="header">
-    <a href="../page_0/index.html">
-      <svg class="icon"><use href="../icons.svg#icon-previous"/></svg>
-    </a>
-    <a href="../index.html">
-      <svg class="icon"><use href="../icons.svg#icon-home"/></svg>
-    </a>
-    <a href="../page_2/index.html">
-      <svg class="icon"><use href="../icons.svg#icon-next"/></svg>
-    </a>
-  </div>
-  <div class="text-container">
-    $$ \text{variabilidade}(C_i) = \sigma^2(C_i) \cdot |C_i| $$
-
-    $$ \text{WCSS}(C) = \sum_{C_i \in C}\sum_{x \in C_i} \| \overline{C_i} - x \|^2 $$
+  <h1>O que é clustering?</h1>
+  
+  <div id="canvas-container" style="container">
+    <div id="sketch"></div>
   </div>
 </body>
 </html>
