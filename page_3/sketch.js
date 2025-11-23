@@ -306,8 +306,8 @@ function setup() {
   document.addEventListener("keydown", e => {
     if (e.key === "ArrowUp") reset();
     if (e.key === "ArrowDown") nextStep();
-    if (e.key === "ArrowLeft") location.assign("../page_1/index.html");
-    if (e.key === "ArrowRight") location.assign("../page_3/index.html");
+    if (e.key === "ArrowLeft") location.assign("../page_2/index.html");
+    if (e.key === "ArrowRight") location.assign("../page_4/index.html");
   });
   
   colors = [
