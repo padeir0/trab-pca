@@ -120,21 +120,23 @@ input[type=range] {
 #nav-buttons button {
   width: 100%;
 }
+
 canvas {
   display: block;
 }
 
-.header {
-  text-align: center;
-  justify-content: center;
-  height: fit-content;
-  padding: 1em;
-  margin: 0 0 3em 0;
-  border-bottom: 1px solid black;
+a {
+  color: black;
+  text-decoration: underline;
 }
 
-.header a {
-  padding: 0 2em 0 2em;
+a:visited {
+  color: dark-grey;
+  text-decoration: underline;
+}
+
+a:hover {
+  font-weight: bold;
 }
 
 .text-container {
