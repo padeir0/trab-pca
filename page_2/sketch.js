@@ -1,22 +1,17 @@
 const fps = 1;
 const circleSize = 20;
-const accelerationFactor = 0.001;
 const numClusters = 5;
 
 const minPointsPerCluster = 10;
 const maxPointsPerCluster = 80;
 
-const minInitialRadius = 60;
-const maxInitialRadius = 100;
+const minInitialRadius = 10;
+const maxInitialRadius = 30;
 
-const minFade = 0.1;
-const maxFade = 0.9;
 const maxRadius = maxInitialRadius;
 
-const minSpeed = 0;
-const maxSpeed = 0;
-
 const centerExclusionZoneRadius = 500;
+const maxDistanceToCenter = centerExclusionZoneRadius + 50;
 
 let clusters = [];
 
@@ -78,8 +73,8 @@ function pointCloud(center, maxRadius, numPoints) {
   out = [];
   for (let i = 0; i < numPoints; i++) {
     let p = center.copy()
-    let a1 = random(-1, 1);
-    let a2 = random(-1, 1);
+    let a1 = randomGaussian(0, 1);
+    let a2 = randomGaussian(0, 1);
     p.add(p5.Vector.mult(pair.axis1, a1))
      .add(p5.Vector.mult(pair.axis2, a2));
     out.push(p);
@@ -91,36 +86,39 @@ function randint(lower, upper) {
   return floor(random(lower, upper));
 }
 
-function isInCenter(p) {
+function goodPosition(p) {
   let windowCenter = createVector(width/2, height/2);
-  return p5.Vector.dist(windowCenter, p) < centerExclusionZoneRadius;
+  let distToCenter = p5.Vector.dist(windowCenter, p);
+  return distToCenter < centerExclusionZoneRadius ||
+         distToCenter > maxDistanceToCenter ||
+         p.x < 0 || p.x > width ||
+         p.y < 0 || p.y > height;
 }
 
 function randomVecInCanvas() {
   let out = createVector(random(0, width), random(0, height));
-  while (isInCenter(out)) {
+  let i = 0;
+  while (goodPosition(out) && i < 10) {
     out = createVector(random(0, width), random(0, height));
+    i++;
   }
   return out;
 }
 
 class Cluster {
-  constructor (center, numPoints, initialRadius, speed) {
+  constructor (center, numPoints, initialRadius) {
     this.center = center;
-    this.speed = speed;
     this.points = pointCloud(center, initialRadius, numPoints);
     this.centroid = this.findCentroid();
+    this.fade = max(0.1, 1 - (this.deviation() / maxRadius));
   }
 
-  update() {
+  deviation() {
+    let out = 0;
     for (let i = 0; i < this.points.length; i++) {
-      let p = this.points[i];
-      let velVec = p5.Vector.sub(p, this.center).normalize().mult(this.speed);
-      p.add(velVec);
+      out += p5.Vector.dist(this.center, this.points[i]);
     }
-    this.speed += accelerationFactor * this.speed;
-    this.centroid = this.findCentroid();
-    this.fade = max(0, 1 - (p5.Vector.dist(this.centroid, this.points[0]) / maxRadius));
+    return out/this.points.length;
   }
 
   findCentroid() {
@@ -144,18 +142,13 @@ class Cluster {
     star(this.centroid, circleSize);
     fill(128, 0, 0, this.fade*240);
   }
-
-  shouldDie() {
-    return this.fade < minFade || this.fade > maxFade;
-  }
 }
 
 function newRandomCluster() {
   let center = randomVecInCanvas();
   let numPoints = randint(minPointsPerCluster, maxPointsPerCluster);
   let initialRadius = randint(minInitialRadius, maxInitialRadius);
-  let speed = random(minSpeed, maxSpeed);
-  return new Cluster(center, numPoints, initialRadius, speed);
+  return new Cluster(center, numPoints, initialRadius);
 }
 
 function generateClusters() {
@@ -193,15 +186,7 @@ function setup() {
 function draw() {
   background(220);
   for (let i = 0; i < numClusters; i++) {
-    clusters[i].update();
-  }
-  for (let i = 0; i < numClusters; i++) {
     clusters[i].draw();
-  }
-  for (let i = 0; i < numClusters; i++) {
-    if (clusters[i].shouldDie()) {
-      clusters[i] = newRandomCluster();
-    }
   }
 }
 

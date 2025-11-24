@@ -1,7 +1,7 @@
 const fps = 20;
+const period = 5;
 const circleSize = 5;
 const accelerationFactor = 0.001;
-const numClusters = 10;
 
 const minPointsPerCluster = 5;
 const maxPointsPerCluster = 50;
@@ -9,11 +9,14 @@ const maxPointsPerCluster = 50;
 const minInitialRadius = 5;
 const maxInitialRadius = 50;
 
-const minFade = 0.1;
+const maxFade = 0.99;
 const maxRadius = 200;
 
-const minSpeed = 0.001;
-const maxSpeed = 1;
+const minSpeed = -1;
+const maxSpeed = -0.9;
+
+const centerExclusionZoneRadius = 200;
+const maxDistanceToCenter = centerExclusionZoneRadius + 50;
 
 let clusters = [];
 
@@ -21,46 +24,104 @@ function randint(lower, upper) {
   return floor(random(lower, upper));
 }
 
+function goodPosition(p) {
+  let windowCenter = createVector(width/2, height/2);
+  let distToCenter = p5.Vector.dist(windowCenter, p);
+  return distToCenter < centerExclusionZoneRadius ||
+         distToCenter > maxDistanceToCenter;
+}
+
 function randomVecInCanvas() {
-  return createVector(random(0, width), random(0, height));
+  let out = createVector(random(0, width), random(0, height));
+  while (goodPosition(out)) {
+    out = createVector(random(0, width), random(0, height));
+  }
+  return out;
+}
+
+function randomOrthoPair(maxRadius) {
+  let x = random(-maxRadius, maxRadius);
+  let y = random(-maxRadius, maxRadius);
+  let v1 = createVector(x, y);
+  let v2 = createVector(-y, x);
+  return {"axis1": v1, "axis2": v2}
+}
+
+function pointCloud(center, maxRadius, numPoints) {
+  let pair = randomOrthoPair(maxRadius);
+  out = [];
+  for (let i = 0; i < numPoints; i++) {
+    let p = center.copy()
+    let a1 = randomGaussian(0, 1);
+    let a2 = randomGaussian(0, 1);
+    p.add(p5.Vector.mult(pair.axis1, a1))
+     .add(p5.Vector.mult(pair.axis2, a2));
+    out.push(p);
+  }
+  return out;
+}
+
+function paintBlob(p, fade) {
+  noStroke();
+  fill(128, 0, 0, fade*240);
+  circle(p.x, p.y, circleSize);
 }
 
 class Cluster {
   constructor (center, numPoints, initialRadius, speed) {
     this.center = center;
-    this.numPoints = numPoints;
     this.speed = speed;
-    this.points = [];
+    this.points = pointCloud(center, initialRadius, numPoints);
+    this.alivePoints = this.points.length;
+    this.initialRadius = initialRadius;
+  }
 
-    for (let i = 0; i < numPoints; i++) {
-      let p = createVector(
-        random(-initialRadius, initialRadius),
-        random(-initialRadius, initialRadius));
-      this.points.push(p.add(this.center));
+  pushLast(i) {
+    if (this.alivePoints == 0) {
+      return;
     }
+    let lastIndex = this.alivePoints-1;
+    this.points[i] = this.points[lastIndex];
+    this.alivePoints--;
   }
 
   update() {
-    for (let i = 0; i < this.points.length; i++) {
+    if (this.isDead()) {
+      return;
+    }
+    for (let i = 0; i < this.alivePoints; i++) {
       let p = this.points[i];
       let velVec = p5.Vector.sub(p, this.center).normalize().mult(this.speed);
       p.add(velVec);
+      if (p5.Vector.dist(this.center, p) < 1) {
+        this.pushLast(i);
+      }
     }
     this.speed += accelerationFactor * this.speed;
-    this.fade = max(0, 1 - (p5.Vector.dist(this.center, this.points[0]) / maxRadius));
+    this.fade = max(0, 1 - (this.deviation() / this.initialRadius));
+  }
+
+  deviation() {
+    let out = 0;
+    for (let i = 0; i < this.points.length; i++) {
+      out += p5.Vector.dist(this.center, this.points[i]);
+    }
+    return out/this.points.length;
   }
 
   draw() {
-    for (let i = 0; i < this.points.length; i++) {
-      let p = this.points[i];
-      noStroke();
-      fill(128, 0, 0, this.fade*240);
-      circle(p.x, p.y, circleSize);
+    if (this.isDead()) {
+      paintBlob(this.center, 1);
+    } else {
+      for (let i = 0; i < this.points.length; i++) {
+        let p = this.points[i];
+        paintBlob(p, this.fade);
+      }
     }
   }
 
-  shouldDie() {
-    return this.fade < minFade;
+  isDead() {
+    return this.alivePoints == 0;
   }
 }
 
@@ -72,6 +133,13 @@ function newRandomCluster() {
   return new Cluster(center, numPoints, initialRadius, speed);
 }
 
+function printClusters() {
+  for (let i = 0; i < clusters.length; i++) {
+    let c = clusters[i];
+    console.log(c);
+  }
+}
+
 function setup() {
   p5Canvas = createCanvas(windowWidth, windowHeight);
   p5Canvas.parent("canvas-container");
@@ -80,26 +148,28 @@ function setup() {
   p5Canvas.style('z-index', '-1');
   p5Canvas.style('position', 'fixed');
 
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp") printClusters();
+    if (e.key === "ArrowRight") location.assign("../page_1/index.html");
+  });
+  
   background(220);
   frameRate(fps);
-  for (let i = 0; i < numClusters; i++) {
-    clusters.push(newRandomCluster());
-  }
 }
 
+let frames = 0;
 function draw() {
   background(220);
-  for (let i = 0; i < numClusters; i++) {
-    clusters[i].draw();
-  }
-  for (let i = 0; i < numClusters; i++) {
+  for (let i = 0; i < clusters.length; i++) {
     clusters[i].update();
   }
-  for (let i = 0; i < numClusters; i++) {
-    if (clusters[i].shouldDie()) {
-      clusters[i] = newRandomCluster();
-    }
+  for (let i = 0; i < clusters.length; i++) {
+    clusters[i].draw();
   }
+  if (frames % period == 0) {
+    clusters.push(newRandomCluster());
+  }
+  frames++;
 }
 
 function windowResized() {

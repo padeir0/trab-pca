@@ -1,19 +1,21 @@
 const circleSize = 30;
 const minClusterRadius = 30;
-const maxClusterRadius = 80;
-const minClusterPoints = 10;
+const maxClusterRadius = 50;
+const minClusterPoints = 20;
 const maxClusterPoints = 30;
-const numClusters = 5;
+const numClusters = 4;
 const fps = 20;
-const centerExclusionZoneRadius = 300;
+const centerExclusionZoneRadius = 200;
 const maxDistanceToCenter = centerExclusionZoneRadius + 50;
+
+const defaultAlpha = 32;
 
 let step = 0;
 let points = [];
 let centroids = [];
 let clusters = [];
 let defaultColor;
-let codeLines;
+let currentChoice;
 
 class Point {
   constructor (pos, color) {
@@ -44,23 +46,18 @@ function randint(lower, upper) {
   return floor(random(lower, upper));
 }
 
-function randomOrthoPair(maxRadius) {
-  let x = random(-maxRadius, maxRadius);
-  let y = random(-maxRadius, maxRadius);
-  let v1 = createVector(x, y);
-  let v2 = createVector(-y, x);
-  return {"axis1": v1, "axis2": v2}
-}
+function circularCloud(center, radius, numPoints) {
+  const noise = 5;
 
-function pointCloud(center, maxRadius, numPoints) {
-  let pair = randomOrthoPair(maxRadius);
+  let minAngle = 0;
+  let maxAngle = 2*PI;
+
   for (let i = 0; i < numPoints; i++) {
-    let p = center.copy()
-    let a1 = randomGaussian(0, 1);
-    let a2 = randomGaussian(0, 1);
-    p.add(p5.Vector.mult(pair.axis1, a1))
-     .add(p5.Vector.mult(pair.axis2, a2));
-    points.push(new Point(p, defaultColor));
+    let angle = random(minAngle, maxAngle);
+    let r = radius + randomGaussian(0, noise);
+    let x = center.x + r * cos(angle);
+    let y = center.y + r * sin(angle);
+    points.push(new Point(createVector(x, y), defaultColor));
   }
 }
 
@@ -127,15 +124,6 @@ class Cluster {
   }
 }
 
-function resetColorPicker() {
-  currentChoice = 0;
-}
-
-function pickColor() {
-  let c = colors[currentChoice];
-  currentChoice = (currentChoice+1) % colors.length;
-  return c;
-}
 
 function createClusters(centroids) {
   resetColorPicker();
@@ -235,19 +223,20 @@ function reset() {
   centroids = [];
   clusters = [];
 
+  let center = createVector(width/2, height/2);
+  let radius = random(minClusterRadius, maxClusterRadius);
+  let numPoints = randint(minClusterPoints, maxClusterPoints);
   for (let i = 0; i < numClusters; i++) {
-    let center = randomVecInCanvas();
-    let radius = random(minClusterRadius, maxClusterRadius);
-    let numPoints = randint(minClusterPoints, maxClusterPoints);
-    pointCloud(center, radius, numPoints);
+    circularCloud(center, radius, numPoints);
+    radius += radius;
+    numPoints += numPoints;
   }
 
   step = 0;
-  highlightStep(step);
   redraw();
 }
 
-function generateCentroids() {
+function createCentroids() {
   for (let i = 0; i < numClusters; i++) {
     let centroid = randomVecInCanvas();
     centroids.push(centroid);
@@ -255,25 +244,9 @@ function generateCentroids() {
   createClusters(centroids);
 }
 
-let stepToLineMap = {
-  0: 0,
-  1: 2,
-  2: 3,
-  3: 4,
-  4: 5,
-};
-
-function highlightStep(step) {
-  codeLines.forEach(line => line.classList.remove('highlight'));
-  let line = stepToLineMap[step];
-  if (line >= 0 && line < codeLines.length) {
-    codeLines[line].classList.add('highlight');
-  }
-}
-
 function nextStep() {
   if (step == 0) {
-    generateCentroids();
+    createCentroids();
     step = 1;
   } else if (step == 1) {
     assignPointsToCentroids();
@@ -291,8 +264,17 @@ function nextStep() {
   } else if (step = 4) {
     // do nothing?
   }
-  highlightStep(step);
   redraw();
+}
+
+function resetColorPicker() {
+  currentChoice = 0;
+}
+
+function pickColor() {
+  let c = colors[currentChoice];
+  currentChoice = (currentChoice+1) % colors.length;
+  return c;
 }
 
 function setup() {
@@ -308,27 +290,26 @@ function setup() {
   document.addEventListener("keydown", e => {
     if (e.key === "ArrowUp") reset();
     if (e.key === "ArrowDown") nextStep();
-    if (e.key === "ArrowLeft") location.assign("../page_2/index.html");
-    if (e.key === "ArrowRight") location.assign("../page_4/index.html");
+    if (e.key === "ArrowLeft") location.assign("../page_3/index.html");
+    if (e.key === "ArrowRight") location.assign("../page_5/index.html");
   });
   
   colors = [
-    color(230, 25, 75),
-    color(60, 180, 75),
-    color(255, 225, 25),
-    color(0, 130, 200),
-    color(245, 130, 48),
-    color(145, 30, 180),
-    color(70, 240, 240),
-    color(240, 50, 230),
-    color(210, 245, 60),
-    color(250, 190, 190)
+    color(230, 25, 75, defaultAlpha),
+    color(60, 180, 75, defaultAlpha),
+    color(255, 225, 25, defaultAlpha),
+    color(0, 130, 200, defaultAlpha),
+    color(245, 130, 48, defaultAlpha),
+    color(145, 30, 180, defaultAlpha),
+    color(70, 240, 240, defaultAlpha),
+    color(240, 50, 230, defaultAlpha),
+    color(210, 245, 60, defaultAlpha),
+    color(250, 190, 190, defaultAlpha)
   ];
 
-  defaultColor = color(192, 0, 0, 96);
+  defaultColor = color(192, 0, 0, defaultAlpha);
   noLoop();
   frameRate(fps);
-  highlightStep(step);
   reset();
 }
 
