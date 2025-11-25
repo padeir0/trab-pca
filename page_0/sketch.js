@@ -151,8 +151,16 @@ function setup() {
   document.addEventListener("keydown", e => {
     if (e.key === "ArrowUp") printClusters();
     if (e.key === "ArrowRight") location.assign("../page_1/index.html");
+    if (e.key.toLowerCase() === "h") {
+      const overlay = document.getElementById("help-overlay");
+      overlay.style.display = (overlay.style.display === "flex") ? "none" : "flex";
+    }
   });
-  
+
+  document.getElementById("help-close").addEventListener("click", () => {
+    document.getElementById("help-overlay").style.display = "none";
+  });
+
   background(220);
   frameRate(fps);
 }

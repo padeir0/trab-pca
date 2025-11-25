@@ -3,10 +3,10 @@ const circleSize = 20;
 const numClusters = 5;
 
 const minPointsPerCluster = 10;
-const maxPointsPerCluster = 80;
+const maxPointsPerCluster = 20;
 
-const minInitialRadius = 10;
-const maxInitialRadius = 30;
+const minInitialRadius = 30;
+const maxInitialRadius = 50;
 
 const maxRadius = maxInitialRadius;
 
@@ -33,31 +33,6 @@ function star(p, r) {
     vertex(sx, sy);
   }
   endShape(CLOSE);
-}
-
-function drawArrow(base, vec, color = 'black') {
-  push();
-  stroke(color);
-  fill(color);
-
-  // Translate to the base point
-  translate(base.x, base.y);
-
-  // Draw the main line
-  line(0, 0, vec.x, vec.y);
-
-  // Draw the arrowhead
-  let arrowSize = 10;
-  let angle = vec.heading();
-  translate(vec.x, vec.y);
-  rotate(angle);
-  beginShape();
-  vertex(0, 0);
-  vertex(-arrowSize, arrowSize / 2);
-  vertex(-arrowSize, -arrowSize / 2);
-  endShape(CLOSE);
-
-  pop();
 }
 
 function randomOrthoPair(maxRadius) {
@@ -95,10 +70,12 @@ function goodPosition(p) {
          p.y < 0 || p.y > height;
 }
 
+// TODO: fix this mess, take the center of the screen and apply a
+// random angle to it plus some offset noise.
 function randomVecInCanvas() {
   let out = createVector(random(0, width), random(0, height));
   let i = 0;
-  while (goodPosition(out) && i < 10) {
+  while (goodPosition(out) && i < 20) {
     out = createVector(random(0, width), random(0, height));
     i++;
   }
@@ -135,12 +112,12 @@ class Cluster {
     for (let i = 0; i < this.points.length; i++) {
       let p = this.points[i];
       noStroke();
-      fill(128, 0, 0, this.fade*240);
+      fill(128, 0, 0, this.fade*192);
       circle(p.x, p.y, circleSize);
     }
     fill(0, 0, 128);
     star(this.centroid, circleSize);
-    fill(128, 0, 0, this.fade*240);
+    fill(128, 0, 0, this.fade*192);
   }
 }
 
@@ -178,6 +155,14 @@ function setup() {
     if (e.key === "ArrowUp") generateAndRedraw();
     if (e.key === "ArrowLeft") location.assign("../page_1/index.html");
     if (e.key === "ArrowRight") location.assign("../page_3/index.html");
+    if (e.key.toLowerCase() === "h") {
+      const overlay = document.getElementById("help-overlay");
+      overlay.style.display = (overlay.style.display === "flex") ? "none" : "flex";
+    }
+  });
+
+  document.getElementById("help-close").addEventListener("click", () => {
+    document.getElementById("help-overlay").style.display = "none";
   });
 
   noLoop();

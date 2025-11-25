@@ -9,6 +9,7 @@ const centerExclusionZoneRadius = 200;
 const maxDistanceToCenter = centerExclusionZoneRadius + 50;
 
 const defaultAlpha = 32;
+const centroidAlpha = 250;
 
 let step = 0;
 let points = [];
@@ -40,6 +41,10 @@ function star(x, y, r) {
     vertex(sx, sy);
   }
   endShape(CLOSE);
+}
+
+function withAlpha(c, a) {
+  return color(red(c), green(c), blue(c), a);
 }
 
 function randint(lower, upper) {
@@ -80,7 +85,7 @@ function randomVecInCanvas() {
 
 function drawCentroid(pos, color) {
   stroke(3);
-  fill(color);
+  fill(withAlpha(color, centroidAlpha));
   star(pos.x, pos.y, circleSize*0.75);
 }
 
@@ -292,6 +297,14 @@ function setup() {
     if (e.key === "ArrowDown") nextStep();
     if (e.key === "ArrowLeft") location.assign("../page_3/index.html");
     if (e.key === "ArrowRight") location.assign("../page_5/index.html");
+    if (e.key.toLowerCase() === "h") {
+      const overlay = document.getElementById("help-overlay");
+      overlay.style.display = (overlay.style.display === "flex") ? "none" : "flex";
+    }
+  });
+  
+  document.getElementById("help-close").addEventListener("click", () => {
+    document.getElementById("help-overlay").style.display = "none";
   });
   
   colors = [
@@ -299,12 +312,12 @@ function setup() {
     color(60, 180, 75, defaultAlpha),
     color(255, 225, 25, defaultAlpha),
     color(0, 130, 200, defaultAlpha),
-    color(245, 130, 48, defaultAlpha),
+    color(205, 130, 48, defaultAlpha),
     color(145, 30, 180, defaultAlpha),
-    color(70, 240, 240, defaultAlpha),
-    color(240, 50, 230, defaultAlpha),
-    color(210, 245, 60, defaultAlpha),
-    color(250, 190, 190, defaultAlpha)
+    color(70, 200, 200, defaultAlpha),
+    color(200, 50, 200, defaultAlpha),
+    color(200, 205, 60, defaultAlpha),
+    color(120, 120, 120, defaultAlpha)
   ];
 
   defaultColor = color(192, 0, 0, defaultAlpha);

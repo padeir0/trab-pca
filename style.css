@@ -170,3 +170,43 @@ button.icon-btn {
 .highlight {
   background: yellow;
 }
+
+#help-overlay {
+  position: fixed;
+  inset: 0;
+  display: none; /* Hidden by default */
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+  background: rgba(0,0,0,0.4);
+  z-index: 9999;
+}
+
+.help-box {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  width: min(90vw, 400px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  font-family: sans-serif;
+}
+
+.help-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: .75rem;
+  padding-bottom: .25rem;
+}
+
+.help-header button {
+  color: black;
+}
+
+#help-close {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}

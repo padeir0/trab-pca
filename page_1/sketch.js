@@ -114,6 +114,14 @@ function setup() {
     if (e.key === "ArrowUp") generateAndRedraw();
     if (e.key === "ArrowLeft") location.assign("../page_0/index.html");
     if (e.key === "ArrowRight") location.assign("../page_2/index.html");
+    if (e.key.toLowerCase() === "h") {
+      const overlay = document.getElementById("help-overlay");
+      overlay.style.display = (overlay.style.display === "flex") ? "none" : "flex";
+    }
+  });
+
+  document.getElementById("help-close").addEventListener("click", () => {
+    document.getElementById("help-overlay").style.display = "none";
   });
 
   frameRate(fps);
