@@ -328,11 +328,11 @@ function setup() {
     if (e.key.toLowerCase() === "s") {
       pointsPerClick = max(minPerClick, pointsPerClick-1);
     }
-    if (e.key.toLowerCase() === "d") {
-      brushSpread = min(maxSpread, brushSpread+1);
-    }
     if (e.key.toLowerCase() === "a") {
       brushSpread = max(minSpread, brushSpread-1);
+    }
+    if (e.key.toLowerCase() === "d") {
+      brushSpread = min(maxSpread, brushSpread+1);
     }
   });
   
@@ -372,7 +372,7 @@ function draw() {
   for (let i = 0; i < clusters.length; i++) {
     clusters[i].draw();
   }
-  bottomText(`points per click: ${pointsPerClick}, spread: ${brushSpread}, centroid: ${isCentroid}\n`);
+  bottomText(`dados por clique: ${pointsPerClick}, tamanho do pincel: ${brushSpread}, centroid: ${isCentroid}\n`);
 }
 
 function windowResized() {
