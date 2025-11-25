@@ -305,8 +305,6 @@ function setup() {
   p5Canvas.style('z-index', '-1');
   p5Canvas.style('position', 'fixed');
 
-  codeLines = document.querySelectorAll('.code-line');
-
   document.addEventListener("keydown", e => {
     if (e.key === "ArrowUp") reset();
     if (e.key === "ArrowDown") nextStep();
