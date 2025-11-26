@@ -18,19 +18,21 @@
 </head>
 <body>
   <h2>Clustering Baseado em Centróides</h2>
-  <h3 class="text-container">
-    Seja $A = \{a_0, ..., a_n\}$ um conjunto de dados.
-    Queremos particionar $A$ em uma família $\{A_1, A_2, ..., A_k\}$
-    de forma que minimizamos a <i>variabilidade</i> de cada partição:
-  </h3>
-  <h3>
-    $$ \text{variabilidade}(A) := \sum_{x \in A_i} \| \overline{A_i} - x \|^2 $$
-  </h3>
-  <h3>
-    Onde $\overline{A_i} = \frac{1}{|A_i|}\sum_{x \in A_i} x$ é a média dos pontos
-    da partição $A_i$. Veja que:
-    $$ \text{variabilidade}(A_i) = \sigma^2(A_i) \cdot |A_i| $$
-  </h3>
+  <div class="text-container">
+    <p>
+      Seja $A = \{a_0, ..., a_n\}$ um conjunto de dados.
+      Queremos particionar $A$ em uma família $\{A_1, A_2, ..., A_k\}$
+      de forma que minimizamos a <i>variabilidade</i> de cada partição:
+    </p>
+    <p>
+      $$ \text{variabilidade}(A) := \sum_{x \in A_i} \| \overline{A_i} - x \|^2 $$
+    </p>
+    <p>
+      Onde $\overline{A_i} = \frac{1}{|A_i|}\sum_{x \in A_i} x$ é a média dos pontos
+      da partição $A_i$. Veja que:
+      $$ \text{variabilidade}(A_i) = \sigma^2(A_i) \cdot |A_i| $$
+    </p>
+  </div>
 
   <div id="canvas-container" style="container">
     <div id="sketch"></div>

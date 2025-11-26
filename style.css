@@ -142,6 +142,7 @@ a:hover {
 .text-container {
   max-width: clamp(70ch, 50vw, 90ch);
   margin: 1em auto;
+  text-align: center;
 }
 
 .container {
@@ -209,4 +210,10 @@ button.icon-btn {
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
+}
+
+.matrix-container {
+  display: flex;
+  gap: 3rem;
+  align-items: center;
 }
