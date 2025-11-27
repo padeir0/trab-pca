@@ -1,6 +1,0 @@
-lado esquerdo: usa uma reta e um vetor pra criar dois clusters com pouca variancia na direção
-ortogonal ao vetor
-
-lado direito: projeta todos esses pontos em cima da reta, coloca ela horizontal
-
-pode usar os coeficientes do lado esquerdo diretamente

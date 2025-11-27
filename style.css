@@ -217,3 +217,14 @@ button.icon-btn {
   gap: 3rem;
   align-items: center;
 }
+
+.text-container table {
+  border-collapse: collapse;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.text-container table tr td,th {
+  border: 1px solid #aaa;
+  padding: 10px;
+}
